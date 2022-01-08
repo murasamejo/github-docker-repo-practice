@@ -13,32 +13,183 @@ jobs:
   build_and_push:
     strategy:
       matrix:
+<<<<<<< HEAD
         os: [ubuntu-latest]
+||||||| cd60f2e
+        os: [ubuntu-latest] # [ubuntu-latest, macos-latest]
+        ruby: [2.7.5, 3.0.3, 3.1.0] # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
+        node: [14.18.2, 16.13.1]
+=======
+        os: [ubuntu-latest] # [ubuntu-latest, macos-latest]
+        ruby: [3.1.0] # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
+        node: [16.13.1]
+        # ruby: [2.7.5, 3.0.3, 3.1.0] # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
+        # node: [14.18.2, 16.13.1]
+>>>>>>> main
     name: ビルドアンドプッシュ
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
       - name: checkout
         uses: actions/checkout@v2
+<<<<<<< HEAD
       - name: Git のタグ名 (vX.Y.Z) を Docker 用のタグ名 (X.Y.Z) に変換して変数に保存する
         id: set_docker_tag_variable
+||||||| cd60f2e
+
+      # Ruby
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }} # ${{ env.RUBY_VERSION }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      # Node.js & Yarn
+      # ワークアラウンド (https://github.com/actions/setup-node/issues/182)
+      - name: Setup Node & Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Yarn
+        run: npm install -g yarn
+      - name: Setup Node & Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          # cache: 'yarn'
+
+      # デバッグ用
+      - name: 環境変数の確認をする
+        id: check_environment_variables
+        run: |
+          echo '[環境変数テスト]'
+          echo "${{ env.RUBY_VERSION }}"
+          echo "${{ env.NODE_VERSION }}"
+          echo "${{ env.RAILS_ENV }}"
+      - name: Ruby と Node のバージョンの確認をする
+        id: confirm_ruby_and_node_versions
+        run: |
+          echo '[Ruby と Node のバージョン確認]'
+          echo 'Ruby のバージョンは、'
+          ruby -v
+          echo 'Node.js のバージョンは、'
+          node -v
+          echo 'Yarn のバージョンは、'
+          yarn -v
+
+      # デバッグ用
+      - name: 自分で Step またぎの変数を定義する
+        id: my_variables
+        run: |
+          echo "::set-output name=uname::$(uname -a)"
+          echo "::set-output name=pwd::$(pwd)"
+      - name: 自分で定義した Step またぎの変数の確認をする
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps.my_variables) }}
+        run: |
+          echo '[自分で定義した Step またぎの変数の確認をする]'
+          echo "${STEPS_CONTEXT}"
+          echo "${{ steps.my_variables }}"
+          echo "${{ steps.my_variables.outputs.uname }}"
+          echo "${{ steps.my_variables.outputs.pwd }}"
+
+      - name: Git のタグ名 (vX.Y.Z) を Docker 用のタグ名 (X.Y.Z) に変換して変数に保存する
+        id: set_docker_tag_variable
+=======
+
+      # Ruby
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }} # ${{ env.RUBY_VERSION }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      # Node.js & Yarn
+      # ワークアラウンド (https://github.com/actions/setup-node/issues/182)
+      - name: Setup Node & Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Yarn
+        run: npm install -g yarn
+      - name: Setup Node & Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          # cache: 'yarn'
+
+      # デバッグ用
+      - name: 環境変数の確認をする
+        id: check_environment_variables
+        run: |
+          echo '[環境変数テスト]'
+          echo "${{ env.RUBY_VERSION }}"
+          echo "${{ env.NODE_VERSION }}"
+          echo "${{ env.RAILS_ENV }}"
+      - name: Ruby と Node のバージョンの確認をする
+        id: confirm_ruby_and_node_versions
+        run: |
+          echo '[Ruby と Node のバージョン確認]'
+          echo 'Ruby のバージョンは、'
+          ruby -v
+          echo 'Node.js のバージョンは、'
+          node -v
+          echo 'Yarn のバージョンは、'
+          yarn -v
+
+      # デバッグ用
+      - name: 自分で Step またぎの変数を定義する
+        id: my_variables
+        run: |
+          echo "::set-output name=uname::$(uname -a)"
+          echo "::set-output name=pwd::$(pwd)"
+      - name: 自分で定義した Step またぎの変数の確認をする
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps.my_variables) }}
+        run: |
+          echo '[自分で定義した Step またぎの変数の確認をする]'
+          echo "${STEPS_CONTEXT}"
+          echo "${{ steps.my_variables }}"
+          echo "${{ steps.my_variables.outputs.uname }}"
+          echo "${{ steps.my_variables.outputs.pwd }}"
+
+      # デバッグ用
+      - name: （デバッグ用）Git のタグ名 (vX.Y.Z) を Docker 用のタグ名 (X.Y.Z) に変換して変数に保存する
+        id: set_docker_tag_variable_for_debug
+>>>>>>> main
         run: |
           GIT_TAG=$(git tag --sort=-creatordate | sed -n 1p)
           DOCKER_TAG="${GIT_TAG//v/}"
           echo "::set-output name=docker_tag::${DOCKER_TAG}"
       - name: （デバッグ用）Docker 用のタグ名の変数の保持を確認する
         env:
-          STEPS_CONTEXT: ${{ toJson(steps.set_docker_tag_variable) }}
+          STEPS_CONTEXT: ${{ toJson(steps.set_docker_tag_variable_for_debug) }}
         run: |
           echo '[Docker 用のタグ名の変数の保持を確認する]'
           echo "${STEPS_CONTEXT}"
+<<<<<<< HEAD
           echo "${{ steps.set_docker_tag_variable.outputs.docker_tag }}"
+||||||| cd60f2e
+          echo "${{ steps.set_docker_tag_variable }}"
+          echo "${{ steps.set_docker_tag_variable.outputs.docker_tag }}"
+
+=======
+          echo "${{ steps.set_docker_tag_variable_for_debug }}"
+          echo "${{ steps.set_docker_tag_variable_for_debug.outputs.docker_tag }}"
+
+>>>>>>> main
       - name: GitHub Container Registry にログインする
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Git のタグ名 (vX.Y.Z) を Docker 用のタグ名 (X.Y.Z) に変換して変数に保存する
+        id: set_docker_tag_variable
+        run: |
+          GIT_TAG=$(git tag --sort=-creatordate | sed -n 1p)
+          DOCKER_TAG="${GIT_TAG//v/}"
+          echo "::set-output name=docker_tag::${DOCKER_TAG}"
       - name: イメージをビルドして GitHub Container Registry にプッシュする
         uses: docker/build-push-action@v2
         with:
