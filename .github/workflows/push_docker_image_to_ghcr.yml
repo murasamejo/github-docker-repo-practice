@@ -39,12 +39,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Git のタグ名 (vX.Y.Z) を Docker 用のタグ名 (X.Y.Z) に変換して変数に保存する
-        id: set_docker_tag_variable
-        run: |
-          GIT_TAG=$(git tag --sort=-creatordate | sed -n 1p)
-          DOCKER_TAG="${GIT_TAG//v/}"
-          echo "::set-output name=docker_tag::${DOCKER_TAG}"
       - name: イメージをビルドして GitHub Container Registry にプッシュする
         uses: docker/build-push-action@v2
         with:
