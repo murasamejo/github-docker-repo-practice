@@ -1,0 +1,97 @@
+name: 継続的インテグレーション
+on:
+  push:
+    branches:
+      - main
+      - "feat/*"
+      - "fix/*"
+      - "ci/*"
+env:
+  RUBY_VERSION: 3.1.0
+  NODE_VERSION: 16.13.1
+  RAILS_ENV: test
+  TZ: '/usr/share/zoneinfo/Asia/Tokyo'
+jobs:
+  ci:
+    strategy:
+      fail-fast: false # ある Job が Fail しても、他の Job がキャンセルされないようにする
+      matrix:
+        os: [ubuntu-latest] # [ubuntu-latest, macos-latest]
+        ruby: [2.7.5, 3.0.3, 3.1.0] # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
+        node: [14.18.2, 16.13.1]
+    name: コンティニュアス・インテグレーション
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      # Ruby
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }} # ${{ env.RUBY_VERSION }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+
+      # Node.js & Yarn
+      # ワークアラウンド (https://github.com/actions/setup-node/issues/182)
+      - name: Setup Node & Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install Yarn
+        run: npm install -g yarn
+      - name: Setup Node & Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          # cache: 'yarn'
+
+      # デバッグ用
+      - name: 環境変数の確認をする
+        id: check_environment_variables
+        run: |
+          echo '[環境変数テスト]'
+          echo "${{ env.RUBY_VERSION }}"
+          echo "${{ env.NODE_VERSION }}"
+          echo "${{ env.RAILS_ENV }}"
+      - name: Ruby と Node のバージョンの確認をする
+        id: confirm_ruby_and_node_versions
+        run: |
+          echo '[Ruby と Node のバージョン確認]'
+          echo 'Ruby のバージョンは、'
+          ruby -v
+          echo 'Node.js のバージョンは、'
+          node -v
+          echo 'Yarn のバージョンは、'
+          yarn -v
+
+      # デバッグ用
+      - name: 自分で Step またぎの変数を定義する
+        id: my_variables
+        run: |
+          echo "::set-output name=uname::$(uname -a)"
+          echo "::set-output name=pwd::$(pwd)"
+      - name: 自分で定義した Step またぎの変数の確認をする
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps.my_variables) }}
+        run: |
+          echo '[自分で定義した Step またぎの変数の確認をする]'
+          echo "${STEPS_CONTEXT}"
+          echo "${{ steps.my_variables.outputs.uname }}"
+          echo "${{ steps.my_variables.outputs.pwd }}"
+
+      - name: CI 成功時に実行される Step
+        if: success()
+        run: |
+          echo '[LOG] CI の実行に成功しました'
+          echo "[LOG] Ruby version: $(ruby -v)"
+          echo "[LOG] Node.js version: $(node -v)"
+          echo "[LOG] Yarn version: $(yarn -v)"
+      - name: CI 失敗時に実行される Step
+        if: failure()
+        run: |
+          echo '[LOG] CI の実行に失敗しました'
+          echo "[LOG] Ruby version: $(ruby -v)"
+          echo "[LOG] Node.js version: $(node -v)"
+          echo "[LOG] Yarn version: $(yarn -v)"
