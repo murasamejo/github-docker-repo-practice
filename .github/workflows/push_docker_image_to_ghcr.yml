@@ -8,6 +8,7 @@ env:
   NODE_VERSION: 16.13.1
   RAILS_ENV: test
   TZ: '/usr/share/zoneinfo/Asia/Tokyo'
+  IMAGE_NAME: hello_docker_world
 jobs:
   build_and_push:
     strategy:
