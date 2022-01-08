@@ -19,15 +19,17 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      - name: 環境の確認
+      # GitHub にあるホストで実行された場合の hostname は fv-az91-181 などになる
+      - name: GitHub Actions の実行環境の確認
         id: this_environments
         run: |
+          echo "hostname は $(hostname) です"
           echo "::set-output name=hostname::$(hostname)"
-      - name: 「act環境」の場合だけ実行される
+      - name: 「act（ローカルCLI）での実行環境」の場合だけ実行される
         if: ${{ steps.this_environments.outputs.hostname == 'docker-desktop' }}
         run: |
-          echo '「act環境」で実行中です！'
-      - name: 「非act環境」の場合だけ実行される
+          echo '「act（ローカルCLI）での実行環境」で実行中です！'
+      - name: 「非actでの実行環境」の場合だけ実行される
         if: ${{ steps.this_environments.outputs.hostname != 'docker-desktop' }}
         run: |
-          echo '「非act環境」で実行中です！'
+          echo '「非actでの実行環境」で実行中です！'

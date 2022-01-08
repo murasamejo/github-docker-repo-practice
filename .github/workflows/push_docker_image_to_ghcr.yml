@@ -39,7 +39,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 環境の確認
+        id: this_environments
+        run: |
+          echo "::set-output name=hostname::$(hostname)"
       - name: イメージをビルドして GitHub Container Registry にプッシュする
+        if: ${{ steps.this_environments.outputs.hostname != 'docker-desktop' }} # act でローカル実行した場合は push しない
         uses: docker/build-push-action@v2
         with:
           context: .
