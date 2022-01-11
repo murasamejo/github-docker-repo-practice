@@ -1,0 +1,31 @@
+name: Dispatch用 Actions
+on:
+  push:
+    branches:
+      - "gha_feat/*"
+  workflow_dispatch:
+    inputs:
+      productId:
+        description: '商品番号'
+        required: false
+        default: 'B086R79PBC'
+      price:
+        description: '価格'
+        required: false
+        default: '74778'
+jobs:
+  check_on_property:
+    name: Dispatch用 の Actions
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: Dispatch で手動で入力された値の確認
+        env:
+          INPUT_VALUES: ${{ toJson(github.event.inputs) }}
+        run: |
+          echo "${INPUT_VALUES}"
