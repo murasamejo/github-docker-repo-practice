@@ -19,12 +19,6 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
-      # GitHub にあるホストで実行された場合の hostname は fv-az91-181 などになる
-      - name: GitHub Actions の実行環境の確認
-        id: this_environments
-        run: |
-          echo "hostname は $(hostname) です"
-          echo "::set-output name=hostname::$(hostname)"
       - name: GitHub Actions の実行環境の確認
         id: check_on_act_or_not
         # /opt/hostedtoolcache は act のイメージにしか存在しないことを前提としている
